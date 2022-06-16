@@ -98,12 +98,98 @@ REST：一种定义接口的规范
  - PUT 用来更新资源
  - DELETE 用来删除资源
  
-### 基于postman操作
-
-### 基于kibana操作
-
 ### 操作索引
 
-### 操作映射
+添加索引
+> PUT /索引名称
 
-### 操作文档
+查询索引信息
+> GET /索引名称
+
+删除索引
+> DELETE /索引名称
+
+关闭索引
+> POST /索引名称/_close
+
+打开索引
+> POST /索引名称/_open
+
+### 操作映射
+ES支持的数据类型：
+1. 简单数据类型
+
+* 字符串
+    * text：会分词，不支持聚合
+    * keyword： 不会分词，将全部内容作为一个词条，支持聚合
+* 数值
+    * long 带符号的64位整数
+	* integer 带符号的32位整数
+	* short 带符号的16位整数
+	* byte 带符号的8为整数
+	* double 双精度64为IEEE 754浮点数
+	* float 单精度32为IEEE 754浮点数
+	* half_float 半精度16为IEEE 754浮点数
+	* scaled_float 由a支持的有限浮点数long，由固定double比例因子缩放
+* 布尔
+	* boolean
+* 二进制
+	* binary
+* 范围类型
+	* integer_range float_range long_range double_range date_range
+* 日期
+	* date
+
+2.复杂数据类型
+* 数组 []
+* 对象 {}
+
+#### 如何操作？
+
+查询映射
+
+> GET 索引名称/_mapping
+
+
+添加映射
+
+> PUT 索引名称/_mapping
+{
+&emsp;"properties":{&emsp;//properties固定
+&emsp;&emsp;"name":{
+&emsp;&emsp;&emsp;"type":"keyword"
+&emsp;&emsp;},
+&emsp;&emsp;"age":{
+&emsp;&emsp;&emsp;"type":"integer"
+&emsp;&emsp;},
+&emsp;}
+}
+
+创建索引并添加映射
+> PUT 索引名称
+{
+&emsp;"mappings":{
+&emsp;&emsp;"properties":{&emsp;//properties固定
+&emsp;&emsp;&emsp;&emsp;"name":{
+&emsp;&emsp;&emsp;&emsp;&emsp;"type":"keyword"
+&emsp;&emsp;&emsp;&emsp;},
+&emsp;&emsp;&emsp;&emsp;"age":{
+&emsp;&emsp;&emsp;&emsp;&emsp;"type":"integer"
+&emsp;&emsp;&emsp;&emsp;},
+&emsp;&emsp;&emsp;}
+&emsp;&emsp;}
+&emsp;}
+}
+
+修改映射
+
+* 添加字段：
+
+> PUT 索引名称/_mapping
+{
+&emsp;"properties":{&emsp;//properties固定
+&emsp;&emsp;"address":{
+&emsp;&emsp;&emsp;"type":"text"
+&emsp;&emsp;},
+&emsp;}
+}
