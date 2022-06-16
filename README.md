@@ -50,3 +50,60 @@
 * Mysql有事务性，ES没有
 * ES没有物理外键的特性，如果对数据的强一致性要求高的场景不适用
 * 一般使用场景下，Mysql负责存储数据，ES负责搜索数据
+
+# ElasticSearch浅析
+## ElasticSearch核心概念
+ES中有几个基本概念：索引(index)、类型(type)、文档(document)、映射(mapping)等。我们将这几个概念与传统的关系型数据库中的库、表、行、列等概念进行对比，如下表：
+
+| RDBS                  | ES |
+| ----------------------| -----:|
+| 数据库(database)      | 索引（index） |
+| 表(table)             |   类型（type）（ES6.0之后被废弃，es7中完全删除） |
+| 表结构（schema）       |   映射（mapping）        |
+| 行（row）             |   文档（document）       |
+| 列（column）	         |   字段（field）          |
+| 索引                  | 反向索引                 |
+|SQL                   |  查询DSL                 |
+|SELECT * FROM table    |GET http://.....         |
+|UPDATE table SET       |PUT  http://......       |
+|DELETE                 |DELETE  http://......    |
+
+* 索引（index）
+> es中存储数据的地方，可以理解成关系型数据库中的数据库概念
+
+* 映射（mapping）
+> mapping定义了每个字段的类型，字段所使用的的分词器等，相当于关系型数据库中的表结构
+
+* 文档（document）
+> es中的最小数据单元，常以json格式显示，一个document相当于关系型数据库中的一行数据
+
+* 倒排索引
+> 一个倒排索引由文档中所有不重复次的列表构成，对于其中每个词，对应一个包含它的文档id列表
+
+* 类型（type）
+> 一种typ就相当于一类表，在es7.x中默认type为_doc，由于已经不再使用，所以不再关注，相当于一个关系型数据库中只有一张表
+ - es5中一个index可以有多种type
+ - es6中一个index只能有一种type
+ - es7以后将逐渐废弃这个概念
+
+## 操作ES
+### Restful风格介绍
+REST：一种定义接口的规范
+- 基于HTTP协议
+- 可以使用xml格式定义或json格式定义
+- 每一个uri代表一种资源
+- 客户端使用GET POST PUT DELETE 四种动词表示不同的操作方式
+ - GET 获取资源
+ - POST 用来新建资源（也可以用来更新）
+ - PUT 用来更新资源
+ - DELETE 用来删除资源
+ 
+### 基于postman操作
+
+### 基于kibana操作
+
+### 操作索引
+
+### 操作映射
+
+### 操作文档
