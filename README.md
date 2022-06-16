@@ -193,3 +193,80 @@ ES支持的数据类型：
 &emsp;&emsp;},
 &emsp;}
 }
+
+### 操作文档
+
+添加文档，指定id
+
+> PUT 索引名称/_doc/文档id&emsp;&emsp;//POST方法也可以
+{
+&emsp;"name":"zhangsan",
+&emsp;"age":20,
+&emsp;"address":"浙江杭州"
+}
+
+添加文档，不指定id
+
+> POST 索引名称/_doc
+{
+&emsp;"name":"lisi",
+&emsp;"age":20,
+&emsp;"address":"浙江宁波"
+}
+
+修改文档
+
+> PUT 索引名称/_doc/文档id
+{
+&emsp;"name":"zhangsan",
+&emsp;"age":22,
+&emsp;"address":"江苏南京"
+}
+
+根据id查询文档
+
+> GET 索引名称/_doc/文档id
+
+查询所有文档
+
+> GET 索引名称/_search
+
+根据id删除文档
+> DELETE 索引名称/_doc/文档id
+
+## 分词器
+* 分词器（Analyzer）：将一段文档按照一定规则分析成多个词语的一种工具
+* ES内置多种分词器，包括 standartAnalyzer SimpleAnalyzer 等等，内置的分词器对中文不友好，基本是一个字一个词
+
+测试一下分词器：
+
+> GET _analyze
+{
+&emsp;"analyzer":"standard",
+&emsp;"text":"这是分词器的测试"
+}
+
+### IK分词器
+* IKAnalyzer是一个开源的，基于java语言开发的轻量级的中文分词工具包
+* 是一个基于Maven构建的项目
+* 具有60万字/秒的高速处理能哪里
+* 支持用户词典扩展定义
+
+### 查询文档的高级用法
+* 词条查询：term
+	* 词条查询不会分析查询条件，只有当词条和查询字符串完全匹配时才匹配搜索
+* 全文查询：match
+	* 全文查询会分析查询条件，先将查询条件进行分词，然后查询，并集
+
+词条查询：
+
+> GET 索引名称/_search
+{
+&emsp;"query":{
+&emsp;&emsp;"term":{
+&emsp;&emsp;&emsp;"address":{
+&emsp;&emsp;&emsp;&emsp;"value":"手机"
+&emsp;&emsp;&emsp;}
+&emsp;&emsp;}
+&emsp;}
+}
