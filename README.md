@@ -1,3 +1,4 @@
+
 # 初识ElasticSearch
 
 ## 倒排索引
@@ -159,6 +160,10 @@ ES支持的数据类型：
 &emsp;&emsp;"name":{<br />
 &emsp;&emsp;&emsp;"type":"keyword"<br />
 &emsp;&emsp;},<br />
+&emsp;&emsp;"address":{<br />
+&emsp;&emsp;&emsp;"type":"text"<br />
+&emsp;&emsp;&emsp;"analyzer":"ik_max_word"<br /> // 这里指定了分词器，如果不指定，默认使用standard分词器，对中文不友好
+&emsp;&emsp;},<br />
 &emsp;&emsp;"age":{<br />
 &emsp;&emsp;&emsp;"type":"integer"<br />
 &emsp;&emsp;},<br />
@@ -252,13 +257,30 @@ ES支持的数据类型：
 * 具有60万字/秒的高速处理能哪里
 * 支持用户词典扩展定义
 
+IK分词器的两种模式：
+* ik_smart 粗粒度分词
+> GET _analyze<br />
+{<br />
+&emsp;"analyzer":"ik_smart",<br />
+&emsp;"text":"这是分词器的测试"<br />
+}
+
+* ik_max_word 细粒度分词
+> GET _analyze<br />
+{<br />
+&emsp;"analyzer":"ik_max_word",<br />
+&emsp;"text":"这是分词器的测试"<br />
+}
+
 ### 查询文档的高级用法
+
 * 词条查询：term
 	* 词条查询不会分析查询条件，只有当词条和查询字符串完全匹配时才匹配搜索
 * 全文查询：match
 	* 全文查询会分析查询条件，先将查询条件进行分词，然后查询，并集
 
-词条查询：
+最基本的词条查询写法：
+term查询：
 
 > GET 索引名称/_search<br />
 {<br />
@@ -267,6 +289,17 @@ ES支持的数据类型：
 &emsp;&emsp;&emsp;"address":{<br />
 &emsp;&emsp;&emsp;&emsp;"value":"手机"<br />
 &emsp;&emsp;&emsp;}<br />
+&emsp;&emsp;}<br />
+&emsp;}<br />
+}
+
+match查询：
+
+> GET 索引名称/_search<br />
+{<br />
+&emsp;"query":{<br />
+&emsp;&emsp;"match":{<br />
+&emsp;&emsp;&emsp;"address":"浙江杭州"<br />
 &emsp;&emsp;}<br />
 &emsp;}<br />
 }
