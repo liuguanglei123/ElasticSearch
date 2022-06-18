@@ -153,45 +153,45 @@ ES支持的数据类型：
 
 添加映射
 
-> PUT 索引名称/_mapping
-{
-&emsp;"properties":{&emsp;//properties固定
-&emsp;&emsp;"name":{
-&emsp;&emsp;&emsp;"type":"keyword"
-&emsp;&emsp;},
-&emsp;&emsp;"age":{
-&emsp;&emsp;&emsp;"type":"integer"
-&emsp;&emsp;},
-&emsp;}
+> PUT 索引名称/_mapping<br />
+{<br />
+&emsp;"properties":{&emsp;//properties固定<br />
+&emsp;&emsp;"name":{<br />
+&emsp;&emsp;&emsp;"type":"keyword"<br />
+&emsp;&emsp;},<br />
+&emsp;&emsp;"age":{<br />
+&emsp;&emsp;&emsp;"type":"integer"<br />
+&emsp;&emsp;},<br />
+&emsp;}<br />
 }
 
 创建索引并添加映射
-> PUT 索引名称
-{
-&emsp;"mappings":{
-&emsp;&emsp;"properties":{&emsp;//properties固定
-&emsp;&emsp;&emsp;&emsp;"name":{
-&emsp;&emsp;&emsp;&emsp;&emsp;"type":"keyword"
-&emsp;&emsp;&emsp;&emsp;},
-&emsp;&emsp;&emsp;&emsp;"age":{
-&emsp;&emsp;&emsp;&emsp;&emsp;"type":"integer"
-&emsp;&emsp;&emsp;&emsp;},
-&emsp;&emsp;&emsp;}
-&emsp;&emsp;}
-&emsp;}
+> PUT 索引名称<br />
+{<br />
+&emsp;"mappings":{<br />
+&emsp;&emsp;"properties":{&emsp;//properties固定<br />
+&emsp;&emsp;&emsp;&emsp;"name":{<br />
+&emsp;&emsp;&emsp;&emsp;&emsp;"type":"keyword"<br />
+&emsp;&emsp;&emsp;&emsp;},<br />
+&emsp;&emsp;&emsp;&emsp;"age":{<br />
+&emsp;&emsp;&emsp;&emsp;&emsp;"type":"integer"<br />
+&emsp;&emsp;&emsp;&emsp;},<br />
+&emsp;&emsp;&emsp;}<br />
+&emsp;&emsp;}<br />
+&emsp;}<br />
 }
 
 修改映射
 
 * 添加字段：
 
-> PUT 索引名称/_mapping
-{
-&emsp;"properties":{&emsp;//properties固定
-&emsp;&emsp;"address":{
-&emsp;&emsp;&emsp;"type":"text"
-&emsp;&emsp;},
-&emsp;}
+> PUT 索引名称/_mapping<br />
+{<br />
+&emsp;"properties":{&emsp;//properties固定<br />
+&emsp;&emsp;"address":{<br />
+&emsp;&emsp;&emsp;"type":"text"<br />
+&emsp;&emsp;},<br />
+&emsp;}<br />
 }
 
 ### 操作文档
@@ -207,20 +207,20 @@ ES支持的数据类型：
 
 添加文档，不指定id
 
-> POST 索引名称/_doc
-{
-&emsp;"name":"lisi",
-&emsp;"age":20,
-&emsp;"address":"浙江宁波"
+> POST 索引名称/_doc<br />
+{<br />
+&emsp;"name":"lisi",<br />
+&emsp;"age":20,<br />
+&emsp;"address":"浙江宁波"<br />
 }
 
 修改文档
 
-> PUT 索引名称/_doc/文档id
-{
-&emsp;"name":"zhangsan",
-&emsp;"age":22,
-&emsp;"address":"江苏南京"
+> PUT 索引名称/_doc/文档id<br />
+{<br />
+&emsp;"name":"zhangsan",<br />
+&emsp;"age":22,<br />
+&emsp;"address":"江苏南京"<br />
 }
 
 根据id查询文档
@@ -240,10 +240,10 @@ ES支持的数据类型：
 
 测试一下分词器：
 
-> GET _analyze
-{
-&emsp;"analyzer":"standard",
-&emsp;"text":"这是分词器的测试"
+> GET _analyze<br />
+{<br />
+&emsp;"analyzer":"standard",<br />
+&emsp;"text":"这是分词器的测试"<br />
 }
 
 ### IK分词器
