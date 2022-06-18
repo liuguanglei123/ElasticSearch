@@ -303,3 +303,25 @@ match查询：
 &emsp;&emsp;}<br />
 &emsp;}<br />
 }
+
+# SrpingBoot整合ES
+实现步骤：
+* 搭建SpringBoot工程
+* 引入ES相关依赖
+```     
+<dependency>
+	<groupId>org.elasticsearch.client</groupId>
+	<artifactId>elasticsearch-rest-client</artifactId>
+	<version>7.4.0</version>
+</dependency>
+<dependency>
+	<groupId>org.elasticsearch.client</groupId>
+	<artifactId>elasticsearch-rest-client</artifactId>
+	<version>7.4.0</version>
+</dependency>
+<dependency>
+	<groupId>org.elasticsearch</groupId>
+	<artifactId>elasticsearch</artifactId>
+	<version>7.4.0</version>
+</dependency>
+```
