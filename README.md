@@ -260,13 +260,13 @@ ES支持的数据类型：
 
 词条查询：
 
-> GET 索引名称/_search
-{
-&emsp;"query":{
-&emsp;&emsp;"term":{
-&emsp;&emsp;&emsp;"address":{
-&emsp;&emsp;&emsp;&emsp;"value":"手机"
-&emsp;&emsp;&emsp;}
-&emsp;&emsp;}
-&emsp;}
+> GET 索引名称/_search<br />
+{<br />
+&emsp;"query":{<br />
+&emsp;&emsp;"term":{<br />
+&emsp;&emsp;&emsp;"address":{<br />
+&emsp;&emsp;&emsp;&emsp;"value":"手机"<br />
+&emsp;&emsp;&emsp;}<br />
+&emsp;&emsp;}<br />
+&emsp;}<br />
 }
