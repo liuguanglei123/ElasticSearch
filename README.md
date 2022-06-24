@@ -1,4 +1,3 @@
-
 # 初识ElasticSearch
 
 ## 倒排索引
@@ -51,6 +50,111 @@
 * Mysql有事务性，ES没有
 * ES没有物理外键的特性，如果对数据的强一致性要求高的场景不适用
 * 一般使用场景下，Mysql负责存储数据，ES负责搜索数据
+
+
+# ElasticSearch安装
+中间件服务都可以通过docker进行安装，快且容易备份
+## docker安装
+centos7.9版本安装docker
+
+#### 使用官方安装脚本自动安装
+
+> curl -fsSL https://get.docker.com | bash -s docker --mirror Aliyun
+
+安装后需要设置docker源，这样可以加快下载速度
+
+1.aliyun提供镜像加速服务，只需要访问https://cr.console.aliyun.com/cn-huhehaote/instances/mirrors
+
+2.找到镜像加速服务，复制加速器地址，格式为 https://xpo0iqxr.mirror.aliyuncs.com
+然后按照页面中的提示进行配置
+
+3.配置镜像加速器
+可以通过修改daemon配置文件/etc/docker/daemon.json来使用加速器
+
+> sudo mkdir -p /etc/docker
+sudo tee /etc/docker/daemon.json <<-'EOF'
+{
+&emsp;"registry-mirrors": ["https://xpo0iqxr.mirror.aliyuncs.com"]
+}
+EOF
+sudo systemctl daemon-reload
+sudo systemctl restart docker
+
+## ElasticSearch安装
+#### 1.拉取镜像
+> docker pull elasticsearch:7.7.0
+
+#### 2.运行
+> docker run -d --name es -p 9200:9200 -p 9300:9300 -e "discovery.type=single-node" b0e9f9f047e6
+
+-d：后台启动
+--name：容器名称
+-p：端口映射
+-e：设置环境变量 discovery.type=single-node：单机运行
+b0e9f9f047e6：镜像id
+如果启动不了，可以加大内存设置：-e ES_JAVA_OPTS="-Xms512m -Xmx512m"
+
+#### 3.验证
+浏览器输入地址 http://xxx.xxx.xxx.xxx:9200/
+出现如下内容，即表示启动成功
+```json
+{
+  "name" : "c21912ad63f7",
+  "cluster_name" : "docker-cluster",
+  "cluster_uuid" : "mT4KzuGGTK2G1Zy8ANLbMQ",
+  "version" : {
+    "number" : "7.4.0",
+    "build_flavor" : "default",
+    "build_type" : "docker",
+    "build_hash" : "22e1767283e61a198cb4db791ea66e3f11ab9910",
+    "build_date" : "2019-09-27T08:36:48.569419Z",
+    "build_snapshot" : false,
+    "lucene_version" : "8.2.0",
+    "minimum_wire_compatibility_version" : "6.8.0",
+    "minimum_index_compatibility_version" : "6.0.0-beta1"
+  },
+  "tagline" : "You Know, for Search"
+}
+```
+
+## ik分词器安装
+IK版本一定要和es版本一致 比如：7.4.0
+在线安装
+> 进入容器
+docker exec -it es /bin/bash <br>
+在线下载安装
+./bin/elasticsearch-plugin install https://github.com/medcl/elasticsearch-analysis-ik/releases/download/v7.7.0/elasticsearch-analysis-ik-7.7.0.zip <br>
+重启es
+docekr restart es
+
+测试一下分词器
+使用postman工具，请求如下地址：
+```
+curl --location --request POST 'http://192.168.170.128:9200/_analyze' \
+--header 'Content-Type: application/json' \
+--data-raw '{
+    "analyzer":"ik_max_word",
+    "text":"中华人民共和国合同法"
+}'
+```
+出现合理的分词内容即表示成功
+
+## 安装kibana
+kibana是访问es的工具，既有可视化的各种图标，也可以执行es的各种命令，其版本也要和es完全对应
+> 拉取镜像
+docker pull kibana:7.4.0 <br>
+启动kibana镜像
+docker run -d --name=kibana --restart=always -p 5601:5601 kibana:7.4.0 <br>
+将镜像中的/usr/share/kibana/config/kibana.yml复制到宿主机的/usr/local/kibana/，其中xxxxxxx是kibana镜像的id，用docker ps -a可以查看
+docker cp xxxxxxxx:/usr/share/kibana/config/kibana.yml /usr/local/kibana/ <br>
+修改文件，将kibana.yml文件中的es地址填写正确，再把文件复制回去
+docker cp /usr/local/kibana/kibana.yml xxxxxxx:/usr/share/kibana/config <br>
+退出容器，重启kibana
+docker restart kibana
+
+验证安装
+访问如下地址 http://xxx.xxx.xxx.xxx:5601
+
 
 # ElasticSearch浅析
 ## ElasticSearch核心概念

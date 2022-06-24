@@ -2,27 +2,26 @@ package org.example;
 
 import jdk.nashorn.internal.ir.annotations.Ignore;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.http.Header;
-import org.apache.http.HttpHost;
-import org.apache.http.client.methods.HttpPost;
-import org.elasticsearch.action.admin.indices.create.CreateIndexRequest;
-import org.elasticsearch.action.admin.indices.create.CreateIndexResponse;
 import org.elasticsearch.action.admin.indices.delete.DeleteIndexRequest;
-import org.elasticsearch.action.admin.indices.get.GetIndexRequest;
-import org.elasticsearch.action.delete.DeleteRequest;
 import org.elasticsearch.client.IndicesClient;
-import org.elasticsearch.client.RestClient;
+import org.elasticsearch.client.RequestOptions;
 import org.elasticsearch.client.RestHighLevelClient;
+import org.elasticsearch.client.indices.CreateIndexRequest;
+import org.elasticsearch.client.indices.CreateIndexResponse;
+import org.elasticsearch.client.indices.GetIndexRequest;
 import org.elasticsearch.common.xcontent.XContentType;
-import org.example.config.ElasticSearchConfig;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit4.SpringRunner;
+import sun.misc.IOUtils;
 
 import java.io.IOException;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * @Author: Yeman
@@ -55,12 +54,11 @@ public class ESApplicationTest {
         // 详见 ElasticSearchConfig 类
 
         log.info(client.toString());
-        System.out.println(client);
     }
 
 
     /**
-     * 添加索引
+     * 添加索引，只做一个展示，没有验证过逻辑是否正确
      */
     @Test
     @Ignore
@@ -83,12 +81,15 @@ public class ESApplicationTest {
                 "  }\n" +
                 " }";
         createIndex.mapping(mapping, XContentType.JSON);
-        CreateIndexResponse response = indicesClient.create(createIndex, new Header[]{});
+        CreateIndexResponse response = indicesClient.create(createIndex, RequestOptions.DEFAULT);
 
         //3.根据返回值判断结果
         log.info(String.valueOf(response.isAcknowledged()));
     }
 
+    /**
+     * 删除索引，只做一个展示，没有验证过逻辑是否正确
+     */
     @Test
     @Ignore
     public void deleteIndex() throws IOException {
@@ -97,25 +98,48 @@ public class ESApplicationTest {
 
         //删除索引
         DeleteIndexRequest deleteRequest = new DeleteIndexRequest("test_index");
-        indicesClient.delete(deleteRequest, new Header[]{});
+        indicesClient.delete(deleteRequest, RequestOptions.DEFAULT);
     }
 
-    //判断索引是否存在
+    /**
+     * 判断索引是否存在
+     */
     @Test
     @Ignore
     public void existIndex() throws IOException {
-        ///1.使用client获取操作索引的对象
+        // 1.使用client获取操作索引的对象
         IndicesClient indicesClient = client.indices();
 
-        GetIndexRequest existRequest = new GetIndexRequest();
-        indicesClient.exists(existRequest, new Header[]{});
+        // 2.如果不报错，就表示获取索引成功了
+        GetIndexRequest existRequest = new GetIndexRequest(".kibana_task_manager_1");
+        indicesClient.get(existRequest, RequestOptions.DEFAULT);
     }
 
     /**
      * 添加文档
      */
-    public void addDoc(){
-        IndicesClient indicesClient = client.indices();
+    @Test
+    public void addDoc() throws IOException {
+        //数据对象
+        Map data = new HashMap<>();
+
+        data.put("content","this is content");
+        data.put("email","123123123@126.com");
+        data.put("name","this is name");
+        data.put("type","this is type");
+        data.put("user_name","this is user_name");
+        data.put("tweeted_at",new Date(System.currentTimeMillis()));
+
+        log.info(client.info(RequestOptions.DEFAULT).getClusterUuid());
+        log.info(client.info(RequestOptions.DEFAULT).getClusterName().toString());
+
+        //1.获取操作文档对象
+//        IndexRequest request = new IndexRequest("test").id("00001").source(data);
+        //添加数据
+//        IndexResponse response = client.update(request, new Header[]{});
+
+        //2.打印响应结果
+//        log.info(response.getId());
     }
 
 }

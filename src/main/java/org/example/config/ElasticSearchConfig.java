@@ -1,6 +1,5 @@
 package org.example.config;
 
-import jdk.nashorn.internal.ir.annotations.Ignore;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.http.HttpHost;
