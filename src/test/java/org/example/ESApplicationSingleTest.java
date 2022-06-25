@@ -39,7 +39,7 @@ import java.util.Map;
 @SpringBootTest
 @Slf4j
 @RunWith(SpringRunner.class)
-public class ESApplicationTest {
+public class ESApplicationSingleTest {
 
     @Autowired
     @Qualifier("MyEsClient")

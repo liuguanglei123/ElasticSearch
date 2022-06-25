@@ -246,8 +246,8 @@ ES支持的数据类型：
 	* date
 
 2.复杂数据类型
-* 数组 []
-* 对象 {}
+* 数组 array []
+* 对象 object {}
 
 #### 如何操作？
 
@@ -428,4 +428,140 @@ match查询：
 	<artifactId>elasticsearch</artifactId>
 	<version>7.4.0</version>
 </dependency>
+```
+
+## 单请求操作
+所有的单个请求的操作在ESApplicationSingleTest测试类中
+
+## 批量操作
+所有的批量请求的操作在ESApplicationBulkTest测试类中
+
+# ElasticSearch高级搜索
+## 查询所有
+size为分页的大小
+from为查询的起始位置
+```
+GET .kibana_1/_search
+{
+    "query":
+        "match_all": {}
+    },
+    "size": 20,
+    "from": 0
+}
+```
+结果返回示例：
+```
+{
+  "took" : 0,           //耗时
+  "timed_out" : false,  //是否超时
+  "_shards" : {         //分片信息
+    "total" : 1,
+    "successful" : 1,
+    "skipped" : 0,
+    "failed" : 0
+  },
+  "hits" : {            //命中数据
+    "total" : {
+      "value" : 65,        //命中数据总数
+      "relation" : "eq"    //查询方式，这里表示等值查询
+    },
+    "max_score" : 1.0,     //得分/命中匹配度，得分越高越排在前面
+    "hits" : [
+      {
+        "_index" : ".kibana_1",
+        "_type" : "_doc",
+        "_id" : "sample-data-telemetry:flights",
+        "_score" : 1.0,
+        "_source" : {
+          "sample-data-telemetry" : {
+            "installCount" : 1
+          },
+          "type" : "sample-data-telemetry",
+          "updated_at" : "2022-06-24T04:11:13.605Z"
+        }
+      },
+    ]
+  }
+}
+```
+
+## term查询
+!!! term查询不会对查询条件进行分词
+```
+GET ittest/_search
+{
+    "query":{
+        "term": {
+            "字段名称":"查询条件"
+        }
+    }
+}
+
+例如：
+GET ittest/_search
+{
+    "query":{
+        "term": {
+            "content":{
+                "value":"this is content2"
+            }
+        }
+    }
+}
+```
+
+## match查询
+!!! match查询会对查询条件进行分词后再查询
+* match查询会对查询条件进行分词
+* match查询会将分词后的查询条件和词条进行等值匹配
+* 默认会取所有分词查询结果后的并集（OR）
+```
+GET ittest/_search
+{
+    "query":{
+        "match": {
+            "字段名称":"查询条件"
+        }
+    }
+}
+
+当我们不想让取查询结果的交集时怎么办？
+
+GET ittest/_search
+{
+    "query":{
+        "match": {
+            "字段名称":{
+                "query":"查询条件",
+                "operator":"执行操作（or还是and）"
+            }
+        }
+    }
+}
+
+示例：
+GET ittest/_search
+{
+    "query":{
+        "match": {
+            "content":"is content21"
+            
+        }
+    }
+}
+
+GET ittest/_search
+{
+    "query":{
+        "match": {
+            "content":{
+              "query":"is content21",
+              "operator": "and"
+            }
+        }
+    }
+}
+
+
 ```
