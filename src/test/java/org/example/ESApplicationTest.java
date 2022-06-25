@@ -1,8 +1,14 @@
 package org.example;
 
+import com.alibaba.fastjson.JSON;
 import jdk.nashorn.internal.ir.annotations.Ignore;
 import lombok.extern.slf4j.Slf4j;
 import org.elasticsearch.action.admin.indices.delete.DeleteIndexRequest;
+import org.elasticsearch.action.delete.DeleteRequest;
+import org.elasticsearch.action.delete.DeleteResponse;
+import org.elasticsearch.action.get.GetRequest;
+import org.elasticsearch.action.get.GetResponse;
+import org.elasticsearch.action.index.IndexRequest;
 import org.elasticsearch.client.IndicesClient;
 import org.elasticsearch.client.RequestOptions;
 import org.elasticsearch.client.RestHighLevelClient;
@@ -10,7 +16,9 @@ import org.elasticsearch.client.indices.CreateIndexRequest;
 import org.elasticsearch.client.indices.CreateIndexResponse;
 import org.elasticsearch.client.indices.GetIndexRequest;
 import org.elasticsearch.common.xcontent.XContentType;
+import org.example.pojo.Person;
 import org.junit.Test;
+import org.junit.runner.Request;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -116,13 +124,12 @@ public class ESApplicationTest {
     }
 
     /**
-     * 添加文档
+     * 添加文档，通过map添加
      */
     @Test
-    public void addDoc() throws IOException {
-        //数据对象
-        Map data = new HashMap<>();
-
+    public void addDocByMap() throws IOException {
+        //构造一个简单的map
+        Map<String, Object> data = new HashMap<>();
         data.put("content","this is content");
         data.put("email","123123123@126.com");
         data.put("name","this is name");
@@ -130,16 +137,80 @@ public class ESApplicationTest {
         data.put("user_name","this is user_name");
         data.put("tweeted_at",new Date(System.currentTimeMillis()));
 
-        log.info(client.info(RequestOptions.DEFAULT).getClusterUuid());
-        log.info(client.info(RequestOptions.DEFAULT).getClusterName().toString());
+        //获取操作文档的对象
+        IndexRequest request = new IndexRequest("ittest").source(data);
+        //将数据请求到es
+        client.index(request, RequestOptions.DEFAULT);
 
-        //1.获取操作文档对象
-//        IndexRequest request = new IndexRequest("test").id("00001").source(data);
-        //添加数据
-//        IndexResponse response = client.update(request, new Header[]{});
-
-        //2.打印响应结果
-//        log.info(response.getId());
+//        如果没有报错，就可以在es中查询到添加的数据了
+//        GET ittest/_search
+//        {
+//            "query":{
+//              "match_all":{}
+//            }
+//        }
     }
 
+    /**
+     * 添加文档，通过构造对象添加
+     */
+    @Test
+    public void addDocByJavaObject() throws IOException {
+        //构造一个简单的JavaObject对象
+        Person p = new Person();
+        p.setContent("this is content2");
+        p.setName("123123123@126.com2");
+        p.setTweeted_at(new Date(System.currentTimeMillis()));
+        p.setType("this is type2");
+        p.setUser_name("this is name2");
+
+        //将对象转为json
+        String jsonData = JSON.toJSONString(p);
+
+        //获取操作文档的对象,因为要操作的对象只是一个string，所以source方法需要加一个参数，表示传入的内容是json
+        IndexRequest request = new IndexRequest("ittest").source(jsonData,XContentType.JSON);
+        //将数据请求到es
+        client.index(request, RequestOptions.DEFAULT);
+    }
+
+    /**
+     * 通过id修改文档，文档存在则更新，文档不存在则添加，操作方式和上面一样
+     */
+    @Test
+    public void updateDoc() throws IOException {
+        //构造一个简单的JavaObject对象
+        Person p = new Person();
+        p.setContent("this is content21");
+        p.setName("123123123@126.com21");
+        p.setTweeted_at(new Date(System.currentTimeMillis()));
+        p.setType("this is type21");
+        p.setUser_name("this is name21");
+
+        //将对象转为json
+        String jsonData = JSON.toJSONString(p);
+
+        //获取操作文档的对象,因为要操作的对象只是一个string，所以source方法需要加一个参数，表示传入的内容是json
+        IndexRequest request = new IndexRequest("ittest").id("B4mjloEBSykPw5ERHiUc").source(jsonData,XContentType.JSON);
+        //将数据请求到es
+        client.index(request, RequestOptions.DEFAULT);
+    }
+
+    /**
+     * 通过id查询文档
+     */
+    @Test
+    public void findById() throws IOException {
+        GetRequest getRequest = new GetRequest("ittest","B4mjloEBSykPw5ERHiUc");
+        GetResponse getResponse = client.get(getRequest,RequestOptions.DEFAULT);
+        System.out.println(getResponse.getSourceAsString());
+    }
+
+    /**
+     * 通过id删除文档
+     */
+    @Test
+    public void deleteById() throws IOException {
+        DeleteRequest deleteRequest = new DeleteRequest("ittest","B4mjloEBSykPw5ERHiUc");
+        DeleteResponse delete = client.delete(deleteRequest,RequestOptions.DEFAULT);
+    }
 }
