@@ -431,12 +431,15 @@ match查询：
 ```
 
 ## 单请求操作
-所有的单个请求的操作在ESApplicationSingleTest测试类中
+所有的单个请求的API操作在ESApplicationSingleTest测试类中
 
 ## 批量操作
-所有的批量请求的操作在ESApplicationBulkTest测试类中
+所有的批量请求的API操作在ESApplicationBulkTest测试类中
 
 # ElasticSearch高级搜索
+
+所有高级搜索的操作在ESAdvanceSearchTest测试类中
+
 ## 查询所有
 size为分页的大小
 from为查询的起始位置
@@ -562,6 +565,335 @@ GET ittest/_search
         }
     }
 }
+```
 
+## 模糊查询
+match查询会将查询条件进行分词后进行等值匹配，但是如果期望模糊匹配如何操作？
+* wildcard查询：会对查询条件进行分词，还可以使用通配符？（任意单个字符）和*（0到多个字符）
+> wildcard查询不要使用* key *这种查询，否则会导致倒排索引失效进行全索引匹配，影响性能
+* regexp查询：正则匹配
+* prefix查询：前缀查询
+> 前缀查询最好查询keyword类型的字符串，查询text类型的字符串时，会查询到并不是该词前缀的结果
+```
+wildcard查询:
+GET ittest/_search
+{
+    "query":{
+        "wildcard": {
+            "content":{
+              "value":"content*" //模糊查询content开头的分词
+            }
+        }
+    }
+}
+
+GET ittest/_search
+{
+    "query":{
+        "wildcard": {
+            "content":{
+              "value":"content？" //模糊查询content开头的分词，且content后面有一个字符
+            }
+        }
+    }
+}
+
+//正则查询
+GET ittest/_search
+{
+    "query":{
+        "regexp": {
+            "content":"\\w(+)(.)*"
+        }
+    }
+}
+
+//前缀查询
+GET ittest/_search
+{
+    "query":{
+        "prefix": {
+            "content":{
+                "value":"xxxx"
+            }
+        }
+    }
+}
+```
+
+## 范围&&排序查询
 
 ```
+GET ittest/_search
+{
+  "query":{
+    "range": {
+      "字段名称": {
+        "gte": 100,
+        "lte": 200
+      }
+    }
+  },
+  "sort":[{
+    "字段名称":{
+        "order":"asc或者desc"
+        }   
+    }]
+}
+
+GET ittest/_search
+{
+  "query":{
+    "range": {
+      "price": {
+        "gte": 100,
+        "lte": 200
+      }
+    }
+  },
+  "sort":[{
+    "price":{
+        "order":"asc"
+        }   
+    }]
+}
+```
+
+## queryString查询
+queryString查询具有如下特点：
+* 会对查询条件进行分词
+* 然后将粉刺后的查询条件和索引词条进行等值匹配
+* 默认取并集
+* 可以同时指定多个查询字段（比如输入一个关键字，想同时查询邮箱和姓名匹配的数据）
+
+```
+GET 索引名称/_search
+{
+    "query":{
+        "query_string":{
+            "fields":["查询字段1","查询字段2"],
+            "query":"查询条件1 or 查询条件2"
+        }
+    }
+}
+
+GET ittest/_search
+{
+    "query":{
+        "query_string":{
+            "fields":["name","content"],
+            "query":"content21" //从name和content字段中匹配content21
+        }
+    }
+}
+
+GET ittest/_search
+{
+    "query":{
+        "query_string":{
+            "fields":["name","content"],
+            "query":"this OR content21" //从name和content字段中匹配this或者content21
+        }
+    }
+}
+
+```
+
+## 布尔查询
+boolQuery：对多个查询条件进行连接，连接方式是：
+* must（and）：条件必须成立
+* must_not(not)：条件必须不成立
+* should（or）：条件可以成立
+* filter：条件必须成立，性能比must搞，不会计算匹配度（score）
+
+```
+GET 索引名称/_search
+{
+    "query":{
+        "bool":{
+            "must":[{查询条件}],
+            "must_not":[{查询条件}],
+            "should":[{查询条件}],
+            "filter":[{查询条件}],
+        }
+    }
+}
+示例：
+GET ittest/_search
+GET ittest/_search
+{
+    "query":{
+      "bool":{
+        "must":[
+          {
+            "term":{
+              "name":{
+                "value": "name"
+              }
+            }
+          },
+          {
+            "match":{
+              "name": "is"
+            }
+          }
+        ],
+        "filter":[
+          {
+            "term":{
+              "name":{
+                "value": "name2"
+              }
+            }
+          }
+        ]
+      }
+    }
+}
+```
+
+## 聚合查询
+* 指标聚合：相当于mysql中的聚合函数，比如max，min，avg，sum等
+* 桶聚合：相当于mysql中的group by操作，但不能对text类型的数据进行聚合，会失败，因为text会分词
+
+```
+指标聚合：
+GET ittest/_search
+{
+    "query":{
+        "match":{
+            "name":"xxx"
+        }
+    },
+    "aggs":{
+        "max_time":{ //这个字段名字是自己取的，用于后续结果返回的名字，相当于mysql中的as后面的别名
+            "max":{
+                "field":"tweeted_at"
+            }
+        }
+    }             
+}
+结果返回：
+  "aggregations" : {
+    "max_price" : { //这个字段名称就是上面备注的自定义的字段名
+      "value" : 1.656089494174E12,
+      "value_as_string" : "2022-06-24T16:51:34.174Z"
+    }
+  }
+
+桶聚合：
+GET ittest/_search
+{
+    "query":{
+        "match":{
+            "name":"xxx"
+        }
+    },
+    "aggs":{
+        "names":{ //这个字段名字是自己取的，用于后续结果返回的名字，相当于mysql中的as后面的别名
+            "terms":{
+                "field":"name"
+            }
+        }
+    }             
+}
+结果返回样式：
+  "aggregations" : {
+    "names" : {
+      "doc_count_error_upper_bound" : 0,
+      "sum_other_doc_count" : 0,
+      "buckets" : [
+        {
+          "key" : "this is type",
+          "doc_count" : 1
+        },
+        {
+          "key" : "this is type21",
+          "doc_count" : 1
+        }
+      ]
+    }
+  }
+```
+
+## 高亮查询
+高亮三要素：
+* 高亮字段
+* 前缀
+*后缀
+
+```
+GET ittest/_search
+{
+  "query":{
+    "match":{
+      "content":"content"
+    }
+  },
+  "highlight": {
+    "fields":{
+      "content": {
+        "pre_tags": "xxx ",
+        "post_tags": " yyy"
+      }
+    }
+  }
+}
+结果返回：
+        "highlight" : {
+          "content" : [
+            "this is xxx content yyy"
+          ]
+        }
+```
+
+## 重建索引
+随着业务的变更，索引的结构可能会发生改变
+ES的索引一旦创建，只允许添加字段，不允许改变字段，因为改编自断，需要重建倒排索引，影响内部缓存结构
+遇到这样的场景，需要重建一个新的索引，并将原有的索引的数据导入到新索引中
+一般的操作步骤是：
+1.创建一个新的索引
+2.将原来的索引的数据导入到新索引
+```
+POST /_reindex
+{
+    "source": {
+        "index": "index_old"
+    },
+    "dest": {
+        "index": "index_new"
+    }
+}
+```
+3.删除原来的索引
+4.将新的索引增加一个别名
+```
+POST index_new/_alias/index_old
+```
+
+# ElasticSearch机群管理
+## 集群介绍
+集群和分布式：
+* 集群：多个人做一样的事
+* 分布式：多个人做不一样的事
+
+原有的单点结构：
+* 只有一个机器，部署了单一的es服务
+集群架构：
+* 提供多个机器，访问哪台机器都可以，多个机器存储相同的数据
+分布式集群架构：
+* 多个节点存储不同的数据，共同组成一个完整的服务，并且同时存在多组节点存储相同的数据，通过路由的方式获取正确的机器
+
+ES集群分布式架构相关概念
+* 集群（cluster）：一组拥有共同的cluster name的节点
+* 节点（node）：集群中的一个Es实例
+* 索引（index）：es存储数据的地方，相当于关系数据库中的database概念
+* 分片（shard）：索引可以拆分为不同的部分进行存储，速成分片，在集群环境下，一个索引的不同分片可以拆分到不同的节点中
+    * 主分片（primary shard）：相对于副本分片的定义
+    * 副本分片（replica shard）：每个主分片可以有一个或者多个副本，数据和主分片一样
+
+![](https://pandao.github.io/editor.md/images/logos/editormd-logo-180x180.png)
+
+## 搭建集群
+
+## API访问集群
