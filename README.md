@@ -894,6 +894,90 @@ ES集群分布式架构相关概念
 
 ![](https://github.com/liuguanglei123/ElasticSearch/blob/main/images/es%E9%9B%86%E7%BE%A4.png)
 
-## 搭建集群
+## Es集群管理
+集群原理-分片配置
+* 在创建索引时，如果不指定分片配置，默认主分片1，副本分片1
+* 在创建索引时，可以通过settings设置分片
 
-## API访问集群
+```
+"settings":{
+    "number_of_shards":3, // 主分片
+    "number_of_replicas":1 // 副本分片
+}
+//通过上面的配置，最终创建出来6个分片，每三个是一组，一组主分片，一组备分片
+
+已创建的分片数量，可以通过以下方式查看
+GET 索引名称
+{
+  "xxxx_order": {
+    "aliases": {xxxx_order2},
+    "mappings": {
+      "doc": {
+        "properties": {
+    },
+    "settings": {
+      "index": {
+        "number_of_shards": "5", //主分片数量
+        "provided_name": "xxxx_order",
+        "max_result_window": "20000",
+        "creation_date": "1654593740960",
+        "number_of_replicas": "1", //每个主分片有一个副本分片
+        "uuid": "xxxxxxxxxxx",
+        "version": {   /
+          "created": "6080299"
+        }
+      }
+    }
+  }
+}
+```
+* 分片与自平衡：当某一个节点挂掉后，挂掉的节点分片会自平衡到其他节点中
+* 在ES中，每个查询在每个分片的单个线程中执行，但是可以并行处理多个分片
+* 分片数量一旦确定好，不能修改
+
+## ES路由原理
+* 文档存入对应的分片，ES计算分片编号的过程，成为路由
+* ES是怎么知道一个文档应该存到哪个分片中呢？
+* 查询时，根据文档id查询文档，ES又该去哪个分片中查询数据呢？
+    * 当主分片挂掉之后，利用取模算法的方式可能会失效，但是es可以通过主节点获取原节点的备份节点
+* 路由算法：shard_index = hash(id) % number_of_primary_shards
+
+## ElasticSearch脑裂
+脑裂：
+* 一个正常个的ES集群中只能有一个主节点（Master），主节点负责管理整个集群，如创建或者删除索引，跟踪哪些节点是机群的一部分，并决定哪些分片分配给相关的节点。
+* 机群的所有节点都会选择同一个节点作为主节点
+* 脑裂问题的出现就是以内从节点在选择主节点上出现分歧导致一个机群出现多个主节点，从而出现集群分裂，使得集群处于异常状态。
+
+假设一个es集群中存在8个节点，其中node-1是主节点，node-2 -- node-8是从节点，其中node-4 到node-8节点因为某些原因导致误认为node-1不再是主节点，选择了node-3作为主节点，产生集群的分裂。
+
+什么情况下会出现脑裂现象？
+
+1.网络原因：网络延迟
+* 一般es集群会在内网部署，也可能跟在外网部署
+* 内网出现网络问题的概率较小，外网出现网络问题的可能性较大
+
+2.节点负载
+* 主节点的角色既为maste又作为数据节点保存数据，当数据访问量较大时，可能会导致msster节点停止响应
+    
+    * es启动文件中有两个配置项：
+   
+    > node.master：是否有资格成为主节点<br>
+    node.data：是否存储数据                                                                           
+
+3.JVM内存回收
+* 当Master节点设置的jvm内存较小时，引发jvm的大规模内存回收，造成ES进程失去响应。
+
+如何避免脑裂？
+
+1.网络原因:discovery.zen.ping.timeout超时时间配置大一点，默认是3s
+
+2.节点负载：角色分离策略
+
+* 候选主节点配置为只作为主节点不存储数据
+    * node.master:true
+    * node.data:false
+* 数据节点配置为只存储数据不作为主节点
+    * node.master:false
+    * node.data:true
+
+3.设置合理的内存：修改config/jvm.options文件中的-Xms和-Xmx为服务器的一般
