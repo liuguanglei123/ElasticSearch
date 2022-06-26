@@ -892,7 +892,7 @@ ES集群分布式架构相关概念
     * 主分片（primary shard）：相对于副本分片的定义
     * 副本分片（replica shard）：每个主分片可以有一个或者多个副本，数据和主分片一样
 
-![](https://pandao.github.io/editor.md/images/logos/editormd-logo-180x180.png)
+![](https://github.com/liuguanglei123/ElasticSearch/blob/main/images/es%E9%9B%86%E7%BE%A4.webp)
 
 ## 搭建集群
 
